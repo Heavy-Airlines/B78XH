@@ -568,6 +568,28 @@ class Boeing_FMC extends FMCMainDisplay {
 	activateExec(){
 		this.activateExecEmissive();
 	}
+
+	setMyBoeingDirectTo(waypoint, callback = EmptyCallback.Void) {
+		const waypoints = this.flightPlanManager.getWaypoints();
+		const indexInFlightPlan = waypoints.findIndex(w => {
+			return w.icao === waypoint.icao;
+		});
+		let i = 1;
+		const removeWaypointMethod = (callback = EmptyCallback.Void) => {
+			if (i < indexInFlightPlan) {
+				this.flightPlanManager.removeWaypoint(1, i === indexInFlightPlan - 1, () => {
+					i++;
+					removeWaypointMethod(callback);
+				});
+			} else {
+				callback();
+			}
+		};
+		removeWaypointMethod(() => {
+			this.flightPlanManager.activateDirectTo(waypoint.infos.icao, callback);
+		});
+	}
+
 	/**
 	 * TODO: This is reimplemented and working version of "DIRECT TO".
 	 * TODO: Need to be tested. especially "DIRECT TO" Approach and Arrival waypoints
@@ -584,7 +606,7 @@ class Boeing_FMC extends FMCMainDisplay {
 	 * @param callback
 	 */
 
-	setMyBoeingDirectTo(directToWaypointIdent, directToWaypointIndex, callback = EmptyCallback.Boolean) {
+	setMyBoeingDirectTo2(directToWaypointIdent, directToWaypointIndex, callback = EmptyCallback.Boolean) {
 		let waypoints = this.flightPlanManager.getWaypoints();
 		let departureCount = this.flightPlanManager.getDepartureWaypointsCount() - 1
 		waypoints.splice(1, departureCount);
